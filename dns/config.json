@@ -3,6 +3,7 @@
     "bind":"0.0.0.0:80",
     "mongo":"hellopeople",
     "cloudflare":true,
+    "protection":true,
     "apiKeys":{
         "KEY1":{
             "owner":"Registrar#1",
