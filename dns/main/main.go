@@ -37,7 +37,7 @@ func main() {
 
 	r := mux.NewRouter()
 	r.HandleFunc("/", home.Handler).Methods("GET")
-	r.HandleFunc("/domain", domain.Register(conf.Cloudflare)).Methods("POST")
+	r.HandleFunc("/domain", domain.Register(conf.Cloudflare, conf.Secure)).Methods("POST")
 	r.HandleFunc("/domainapi/{key}", domain.RegisterAPI(conf.APIKeys)).Methods("POST")
 	r.HandleFunc("/domain/{name}/{tld}", lookup.Specific).Methods("GET")
 	r.HandleFunc("/domain/{key}", domain.Update).Methods("PUT")

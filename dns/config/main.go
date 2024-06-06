@@ -17,6 +17,7 @@ type Config struct {
 	Bind       string                  `json:"bind"`
 	Mongo      string                  `json:"mongo"`
 	Cloudflare bool                    `json:"cloudflare"`
+	Secure bool `json:"protection"`
 	APIKeys    map[string]APIKeyConfig `json:"apiKeys"`
 }
 

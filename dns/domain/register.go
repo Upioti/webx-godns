@@ -38,7 +38,7 @@ func CounterInit() {
 	}()
 }
 
-func Register(cloudflare bool) http.HandlerFunc {
+func Register(cloudflare bool, secure bool) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		var ip string
@@ -54,7 +54,7 @@ func Register(cloudflare bool) http.HandlerFunc {
 		}
 
 		ipDDoSlimiter := security.RetrieveSecondLimiter(ip, 3)
-		if !ipDDoSlimiter.Allow() {
+		if !ipDDoSlimiter.Allow() && secure {
 			http.Error(w, "Blocked due to spam", http.StatusTooManyRequests)
 			return
 		}
@@ -69,7 +69,7 @@ func Register(cloudflare bool) http.HandlerFunc {
 			return
 		}
 
-		if !validateDomain(newDomain.Name, newDomain.TLD) {
+		if !validateDomain(newDomain.Name, newDomain.TLD)  {
 			http.Error(w, "Invalid domain details", http.StatusBadRequest)
 			return
 		}
@@ -79,12 +79,12 @@ func Register(cloudflare bool) http.HandlerFunc {
 			return
 		}
 
-		if !ddoslimiter.Allow() {
+		if !ddoslimiter.Allow() && secure {
 			http.Error(w, "API Under DDoS, Use an external registrar!", http.StatusTooManyRequests)
 			return
 		}
 
-		if !limiter.Allow() {
+		if !limiter.Allow() && secure {
 			http.Error(w, "API is being Botted, Try again in an hour", http.StatusTooManyRequests)
 			return
 		}
@@ -97,7 +97,7 @@ func Register(cloudflare bool) http.HandlerFunc {
 
 		domain := newDomain.Name + "." + newDomain.TLD
 		chanceLimitMutex.Lock()
-		if chanceLimitValue <= 0 {
+		if chanceLimitValue <= 0 && secure {
 			chanceLimitMutex.Unlock()
 			http.Error(w, "API is being Botted, Try again in an hour", http.StatusTooManyRequests)
 			return
@@ -105,6 +105,7 @@ func Register(cloudflare bool) http.HandlerFunc {
 		chanceLimitValue -= 0.01
 		chanceLimitMutex.Unlock()
 
+		if secure {
 		if security.CheckMature(domain) {
 			log.Printf("[DNS] Blocked %s due to innapropriate content", domain)
 			http.Error(w, "Domain contains innapropriate content", 450)
@@ -116,7 +117,7 @@ func Register(cloudflare bool) http.HandlerFunc {
 			http.Error(w, "Blocked due to possible spam", http.StatusNotAcceptable)
 			return
 		}
-
+		}
 		secretKey := utils.GenerateSecretKey(24)
 		data := bson.M{
 			"name":       strings.ToLower(newDomain.Name),
